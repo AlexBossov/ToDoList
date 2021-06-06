@@ -22,17 +22,17 @@
   - Учесть корнер кейсы. Например: задача не может быть добавлена дважды
 
 -Пример input.txt
-  - . Wake Up 04.06.2021 
-  - . Breakfast  
-	   - * Cook 
-	   - * Understand
-	   - * Lol 
-  - . New Task 06.06.2021
+  + Wake Up 04.06.2021 
+  + Breakfast  
+	   * Cook 
+	   * Understand
+	   * Lol 
+  + New Task 06.06.2021
 -Пример output.txt 
-  - . Wake Up 4.6.2021 
-  - . Breakfast 0/3
-	  - * Cook 
-	  - * Understand 
+  + Wake Up 4.6.2021 
+  + Breakfast 0/3
+	  * Cook 
+	  * Understand 
 	  * Lol 
-  - . New Task did 6.6.2021 
+ + New Task did 6.6.2021 
 (То есть .(точка) перед задачей, *(звездочка) перед поздадачей
