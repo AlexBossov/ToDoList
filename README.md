@@ -22,7 +22,7 @@
   - Учесть корнер кейсы. Например: задача не может быть добавлена дважды
 
 
-##Пример input.txt
+## Пример input.txt
   + Wake Up 04.06.2021 
   + Breakfast  
 	   * Cook 
@@ -30,7 +30,7 @@
 	   * Lol 
   + New Task 06.06.2021
 
-##Пример output.txt 
+## Пример output.txt 
   + Wake Up 4.6.2021 
   + Breakfast 0/3
 	  * Cook 
