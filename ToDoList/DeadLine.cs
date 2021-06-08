@@ -10,8 +10,8 @@
             Year = year;
         }
 
-        public ushort Day { get; }
-        public ushort Month { get; }
-        public ulong Year { get; }
+        public ushort Day { get; set; }
+        public ushort Month { get; set; }
+        public ulong Year { get; set; }
     }
 }
