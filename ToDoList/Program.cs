@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text;
 
 namespace ToDoList
 {
@@ -6,21 +8,22 @@ namespace ToDoList
     {
         private static void Main(string[] args)
         {
-            var groupOfTasks = new GroupOfTasks();
+            var taskGroup = new TaskGroup();
 
             try
             {
                 while (true)
                 {
                     var line = Console.ReadLine();
+                    if (line is null)
+                        continue;
                     var find = line.IndexOf(' ');
-                    string command;
-                    command = find.Equals(-1) ? line : line[..find];
+                    var command = find.Equals(-1) ? line : line[..find];
 
                     switch (command)
                     {
                         case "/all":
-                            groupOfTasks.Print();
+                            Console.Write(taskGroup.ToString());
                             break;
                         case "/add":
                             line = line.Remove(0, 4).Trim();
@@ -28,7 +31,7 @@ namespace ToDoList
 
                             if (found1.Equals(-1))
                             {
-                                groupOfTasks.Add(new Task(line));
+                                taskGroup.Add(new Task(line));
                             }
                             else
                             {
@@ -36,50 +39,50 @@ namespace ToDoList
                                 var m = Convert.ToUInt16(line.Substring(found1 + 1, 2));
                                 var y = Convert.ToUInt64(line.Substring(found1 + 4, 4));
                                 line = line.Remove(found1 - 2, 10).Trim();
-                                groupOfTasks.Add(new Task(line, new DeadLine(d, m, y)));
+                                taskGroup.Add(new Task(line, new DeadLine(d, m, y)));
                             }
 
                             break;
                         case "/del":
                             line = line.Remove(0, 4).Trim();
                             var id1 = Convert.ToInt32(line);
-                            if (id1 < 0)
-                                throw new Exception("id must be > 0!");
-                            groupOfTasks.Delete((ushort) id1);
+                            taskGroup.Delete((ushort) id1);
                             break;
                         case "/load":
                             line = line.Remove(0, 5).Trim();
-                            groupOfTasks.Load(line);
+                            taskGroup.Load(line);
                             break;
                         case "/save":
                             line = line.Remove(0, 5).Trim();
-                            groupOfTasks.PrintToFile(line);
+                            using (var sw = new StreamWriter(line, false, Encoding.Default))
+                            {
+                                sw.WriteLine(taskGroup.ToString());
+                            }
+
                             break;
                         case "/today":
-                            groupOfTasks.Today();
+                            taskGroup.Today();
                             break;
                         case "/complete":
                             line = line.Remove(0, 9).Trim();
                             var id2 = Convert.ToInt32(line);
-
-                            if (id2 < 0) throw new Exception("id must be >= 0");
-                            groupOfTasks.Complete((ushort) id2);
+                            taskGroup.Complete((ushort) id2);
                             break;
                         case "/completed":
-                            groupOfTasks.Completed();
+                            taskGroup.Completed();
                             break;
                         case "/add-subtask":
                             line = line.Remove(0, 12).Trim();
                             var found2 = line.IndexOf(' ');
                             if (found2 != -1)
                             {
-                                var id3 = int.Parse(line.Substring(0, found2));
+                                var id3 = int.Parse(line[..found2]);
                                 line = line.Remove(0, found2 + 1);
 
                                 var index = line.IndexOf('.');
                                 if (index.Equals(-1))
                                 {
-                                    groupOfTasks.AddSubTask(new Task(line), (ushort) id3);
+                                    taskGroup.AddSubTask(new Task(line), (ushort) id3);
                                 }
                                 else
                                 {
@@ -87,7 +90,7 @@ namespace ToDoList
                                     var m = Convert.ToUInt16(line.Substring(index + 1, 2));
                                     var y = Convert.ToUInt64(line.Substring(index + 4, 4));
                                     line = line.Remove(index - 2, 10).Trim();
-                                    groupOfTasks.AddSubTask(new Task(line, new DeadLine(d, m, y)), (ushort) id3);
+                                    taskGroup.AddSubTask(new Task(line, new DeadLine(d, m, y)), (ushort) id3);
                                 }
                             }
                             else
@@ -101,8 +104,7 @@ namespace ToDoList
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                throw;
+                Console.WriteLine($"{ex.GetType()}: {ex.Message}");
             }
         }
     }

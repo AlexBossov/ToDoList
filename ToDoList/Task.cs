@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace ToDoList
 {
@@ -7,10 +8,10 @@ namespace ToDoList
         private static ushort
             _identifier; // идентификтор, котрорый постянно будет инкрементиться при добавлении задачи => постоянно будет уникальный
 
+        public readonly List<Task> SubTasks;
+
         public bool Completed; // true - задача выполнена, false - невыполнена
         public ushort CountOfCompletedSubTasks;
-
-        public List<Task> SubTasks; // Лист подзадач
 
         public Task(string text)
         {
@@ -28,8 +29,8 @@ namespace ToDoList
         }
 
         public ushort Id { get; } // Уникальный идентификатор для каждой задачи
-        public string Text { get; } // Суть задачи
-        public DeadLine Deadline { get; } // Срок сдачи
+        public string Text { get; }
+        public DeadLine Deadline { get; }
 
         public static void IncrementIdentifier()
         {
@@ -44,23 +45,30 @@ namespace ToDoList
 
         public string ToString()
         {
-            var task = $"{Text} ";
+            var stringBuilder = new StringBuilder($"{Text} ");
 
             if (!Deadline.Day.Equals(0) || !Deadline.Month.Equals(0) ||
                 !Deadline.Year.Equals(0))
-                task += $"{Deadline.Day}.{Deadline.Month}.{Deadline.Year} ";
+                stringBuilder.Append($"{Deadline.Day}.{Deadline.Month}.{Deadline.Year} ");
 
-            if (!SubTasks.Count.Equals(0))
+            if (Completed && !SubTasks.Count.Equals(0))
             {
-                task += $"{CountOfCompletedSubTasks}/{SubTasks.Count}";
+                stringBuilder.Append($"{SubTasks.Count}/{SubTasks.Count}");
+                foreach (var subTask in SubTasks)
+                    subTask.Completed = true;
             }
-            else
+            else if (!SubTasks.Count.Equals(0))
             {
-                if (Completed)
-                    task += "Done! ";
+                stringBuilder.Append($"{CountOfCompletedSubTasks}/{SubTasks.Count}");
+            }
+            else if (Completed)
+            {
+                stringBuilder.Append("Done! ");
             }
 
-            task += $"(id = {Id})";
+            stringBuilder.Append($"(id = {Id})");
+
+            var task = stringBuilder.ToString();
             return task;
         }
     }
