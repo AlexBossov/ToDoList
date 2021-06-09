@@ -10,6 +10,10 @@ namespace ToDoList
         {
             var taskGroup = new TaskGroup();
 
+            // var taskGroups = new List<TaskGroup>();
+            // var mainGroup = new TaskGroup();
+            // taskGroups.Add(mainGroup);
+
             try
             {
                 while (true)
@@ -23,7 +27,8 @@ namespace ToDoList
                     switch (command)
                     {
                         case "/all":
-                            Console.Write(taskGroup.ToString());
+                            Console.Write(taskGroup
+                                .ToString()); // Если делаю без ToString(), то выводится ToDoList.TaskGroup
                             break;
                         case "/add":
                             line = line.Remove(0, 4).Trim();
@@ -35,11 +40,9 @@ namespace ToDoList
                             }
                             else
                             {
-                                var d = Convert.ToUInt16(line.Substring(found1 - 2, 2));
-                                var m = Convert.ToUInt16(line.Substring(found1 + 1, 2));
-                                var y = Convert.ToUInt64(line.Substring(found1 + 4, 4));
+                                var deadLine = new DeadLine(line.Substring(found1 - 2, 10));
                                 line = line.Remove(found1 - 2, 10).Trim();
-                                taskGroup.Add(new Task(line, new DeadLine(d, m, y)));
+                                taskGroup.Add(new Task(line, deadLine));
                             }
 
                             break;
@@ -56,7 +59,7 @@ namespace ToDoList
                             line = line.Remove(0, 5).Trim();
                             using (var sw = new StreamWriter(line, false, Encoding.Default))
                             {
-                                sw.WriteLine(taskGroup.ToString());
+                                sw.WriteLine(taskGroup);
                             }
 
                             break;
@@ -86,11 +89,9 @@ namespace ToDoList
                                 }
                                 else
                                 {
-                                    var d = Convert.ToUInt16(line.Substring(index - 2, 2));
-                                    var m = Convert.ToUInt16(line.Substring(index + 1, 2));
-                                    var y = Convert.ToUInt64(line.Substring(index + 4, 4));
+                                    var deadLine = new DeadLine(line.Substring(index - 2, 10));
                                     line = line.Remove(index - 2, 10).Trim();
-                                    taskGroup.AddSubTask(new Task(line, new DeadLine(d, m, y)), (ushort) id3);
+                                    taskGroup.AddSubTask(new Task(line, deadLine), (ushort) id3);
                                 }
                             }
                             else

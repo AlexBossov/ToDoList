@@ -21,13 +21,11 @@ namespace ToDoList
             foreach (var task in _tasks)
             {
                 stringBuilder.Append($". {task.ToString()}\n");
-                if (task.SubTasks.Count.Equals(0)) continue;
                 foreach (var subTask in task.SubTasks)
                     stringBuilder.Append($"\t* {subTask.ToString()}\n");
             }
 
-            var tmp = stringBuilder.ToString();
-            return tmp;
+            return stringBuilder.ToString();
         }
 
         public void Add(Task task) // /add task-info
@@ -45,7 +43,7 @@ namespace ToDoList
             var task = _tasks.FirstOrDefault(t => t.Id == id || t.SubTasks.Any(s => s.Id == id));
 
             if (task is null)
-                throw new ArgumentOutOfRangeException(nameof(id));
+                throw new ArgumentOutOfRangeException("There isn't this id");
 
             if (task.Id == id)
                 _tasks.Remove(task);
@@ -58,7 +56,7 @@ namespace ToDoList
             var task = _tasks.FirstOrDefault(t => t.Id == id || t.SubTasks.Any(s => s.Id == id));
 
             if (task is null)
-                throw new ArgumentOutOfRangeException(nameof(id));
+                throw new ArgumentOutOfRangeException("There isn't this id");
 
             if (task.Id == id)
                 task.Completed = true;
@@ -75,13 +73,13 @@ namespace ToDoList
 
         public void Completed() // /completed
         {
-            var completedTasks = from task in _tasks where task.Completed select task;
+            var completedTasks = _tasks.Where(task => task.Completed);
 
             foreach (var task in completedTasks)
             {
                 Console.WriteLine($". {task.ToString()}");
 
-                var completedSubTasks = from subtask in task.SubTasks where subtask.Completed select subtask;
+                var completedSubTasks = task.SubTasks.Where(subtask => subtask.Completed);
                 foreach (var subTask in completedSubTasks)
                     Console.WriteLine($"\t* {subTask.ToString()}");
             }
@@ -89,21 +87,15 @@ namespace ToDoList
 
         public void Today() // /today
         {
-            var todayTasks = from task in _tasks
-                where task.Deadline.Day == DateTime.Now.Day &&
-                      task.Deadline.Month == DateTime.Now.Month &&
-                      task.Deadline.Year == (ulong) DateTime.Now.Year
-                select task;
-
+            var todayTasks = _tasks.Where(task => task.Deadline.Day == DateTime.Now.Day &&
+                                                  task.Deadline.Month == DateTime.Now.Month &&
+                                                  task.Deadline.Year == (ulong) DateTime.Now.Year);
             foreach (var task in todayTasks)
             {
                 Console.WriteLine($". {task.ToString()}");
-
-                var todaySubTasks = from subTask in task.SubTasks
-                    where subTask.Deadline.Day == DateTime.Now.Day &&
-                          subTask.Deadline.Month == DateTime.Now.Month &&
-                          subTask.Deadline.Year == (ulong) DateTime.Now.Year
-                    select subTask;
+                var todaySubTasks = task.SubTasks.Where(subTask => subTask.Deadline.Day == DateTime.Now.Day &&
+                                                                   subTask.Deadline.Month == DateTime.Now.Month &&
+                                                                   subTask.Deadline.Year == (ulong) DateTime.Now.Year);
                 foreach (var subTask in todaySubTasks)
                     Console.WriteLine($"\t* {subTask.ToString()}");
             }
@@ -114,7 +106,7 @@ namespace ToDoList
             var task = _tasks.FirstOrDefault(t => t.Id == id);
 
             if (task is null)
-                throw new ArgumentOutOfRangeException(nameof(id));
+                throw new ArgumentOutOfRangeException("There isn't this id");
 
             task.AddSubTask(subtask);
         }
@@ -123,6 +115,8 @@ namespace ToDoList
         {
             if (!File.Exists(filename))
                 throw new FileNotFoundException("This file doesn't exist");
+
+            _tasks.Clear(); // Подумал, что при считывании файла, надо не просто добавлять задачи, а обновлять все)
 
             using var sr = new StreamReader(filename, Encoding.Default);
             string line;
@@ -135,11 +129,9 @@ namespace ToDoList
                     var found = line.IndexOf('.');
                     if (found != -1)
                     {
-                        var d = Convert.ToUInt16(line.Substring(found - 2, 2));
-                        var m = Convert.ToUInt16(line.Substring(found + 1, 2));
-                        var y = Convert.ToUInt64(line.Substring(found + 4, 4));
+                        var deadLine = new DeadLine(line.Substring(found - 2, 10));
                         line = line.Remove(found - 2, 10).Trim();
-                        Add(new Task(line, new DeadLine(d, m, y)));
+                        Add(new Task(line, deadLine));
                     }
                     else
                     {
@@ -153,11 +145,9 @@ namespace ToDoList
                     var found = line.IndexOf('.');
                     if (found != -1)
                     {
-                        var d = Convert.ToUInt16(line.Substring(found - 2, 2));
-                        var m = Convert.ToUInt16(line.Substring(found + 1, 2));
-                        var y = Convert.ToUInt64(line.Substring(found + 4, 4));
+                        var deadLine = new DeadLine(line.Substring(found - 2, 10));
                         line = line.Remove(found - 2, 10).Trim();
-                        _tasks.Last().AddSubTask(new Task(line, new DeadLine(d, m, y)));
+                        _tasks.Last().AddSubTask(new Task(line, deadLine));
                     }
                     else
                     {

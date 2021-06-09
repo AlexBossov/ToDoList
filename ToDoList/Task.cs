@@ -67,9 +67,7 @@ namespace ToDoList
             }
 
             stringBuilder.Append($"(id = {Id})");
-
-            var task = stringBuilder.ToString();
-            return task;
+            return stringBuilder.ToString();
         }
     }
 }
