@@ -8,12 +8,15 @@ namespace ToDoList
 {
     internal class TaskGroup
     {
-        private readonly List<Task> _tasks;
+        public readonly List<Task> _tasks;
 
-        public TaskGroup()
+        public TaskGroup(string name = "main")
         {
             _tasks = new List<Task>();
+            Name = name;
         }
+
+        public string Name { get; set; }
 
         public string ToString()
         {
@@ -30,75 +33,97 @@ namespace ToDoList
 
         public void Add(Task task) // /add task-info
         {
-            // Не знаю как лучше сделать, если оставить так, то дедлайн не поменяешь, но кратко и красиво, если по-др то не оч красиво, стоит ли 
-            // сделать возможной смену дедлайна?
-
             if (_tasks.Any(task1 => task.Text.Equals(task1.Text))) return;
             _tasks.Add(task);
             Task.IncrementIdentifier();
         }
 
-        public void Delete(ushort id) // /del id
+        public bool Delete(ushort id) // /del id, false - такого id нет
         {
             var task = _tasks.FirstOrDefault(t => t.Id == id || t.SubTasks.Any(s => s.Id == id));
 
             if (task is null)
-                throw new ArgumentOutOfRangeException("There isn't this id");
+                return false;
 
             if (task.Id == id)
+            {
                 _tasks.Remove(task);
+            }
             else
-                task.SubTasks.Remove(task.SubTasks.First(s => s.Id == id));
+            {
+                var subTask = task.SubTasks.FirstOrDefault(s => s.Id == id);
+                if (subTask is null)
+                    return false;
+                task.SubTasks.Remove(subTask);
+            }
+
+            return true;
         }
 
-        public void Complete(ushort id) // /complete id
+        public bool Complete(ushort id) // /complete id, false - такого id нет
         {
             var task = _tasks.FirstOrDefault(t => t.Id == id || t.SubTasks.Any(s => s.Id == id));
 
             if (task is null)
-                throw new ArgumentOutOfRangeException("There isn't this id");
+                return false;
 
             if (task.Id == id)
+            {
                 task.Completed = true;
+            }
             else
-                foreach (var subTask in task.SubTasks.Where(subTask => subTask.Id.Equals(id)))
-                {
-                    subTask.Completed = true;
-                    task.CountOfCompletedSubTasks++;
-                    if (task.CountOfCompletedSubTasks.Equals((ushort) task.SubTasks.Count) &&
-                        !task.SubTasks.Count.Equals(0))
-                        task.Completed = true;
-                }
+            {
+                var subTask = task.SubTasks.FirstOrDefault(subTask1 => subTask1.Id.Equals(id));
+
+                if (subTask is null)
+                    return false;
+
+                subTask.Completed = true;
+                task.CountOfCompletedSubTasks++;
+                if (task.CountOfCompletedSubTasks.Equals((ushort) task.SubTasks.Count) &&
+                    !task.SubTasks.Count.Equals(0)) task.Completed = true;
+            }
+
+            return true;
         }
 
-        public void Completed() // /completed
+        public string Completed() // /completed
         {
             var completedTasks = _tasks.Where(task => task.Completed);
 
+            var stringBuilder = new StringBuilder();
+
             foreach (var task in completedTasks)
             {
-                Console.WriteLine($". {task.ToString()}");
+                stringBuilder.Append($". {task.ToString()}");
 
                 var completedSubTasks = task.SubTasks.Where(subtask => subtask.Completed);
                 foreach (var subTask in completedSubTasks)
-                    Console.WriteLine($"\t* {subTask.ToString()}");
+                    stringBuilder.Append($"\t* {subTask.ToString()}");
             }
+
+            return stringBuilder.ToString();
         }
 
-        public void Today() // /today
+        public string Today() // /today
         {
             var todayTasks = _tasks.Where(task => task.Deadline.Day == DateTime.Now.Day &&
                                                   task.Deadline.Month == DateTime.Now.Month &&
                                                   task.Deadline.Year == (ulong) DateTime.Now.Year);
+
+            var stringBuilder = new StringBuilder();
+
             foreach (var task in todayTasks)
             {
-                Console.WriteLine($". {task.ToString()}");
+                stringBuilder.Append($". {task.ToString()}");
                 var todaySubTasks = task.SubTasks.Where(subTask => subTask.Deadline.Day == DateTime.Now.Day &&
                                                                    subTask.Deadline.Month == DateTime.Now.Month &&
                                                                    subTask.Deadline.Year == (ulong) DateTime.Now.Year);
                 foreach (var subTask in todaySubTasks)
-                    Console.WriteLine($"\t* {subTask.ToString()}");
+                    stringBuilder.Append($"\t* {subTask.ToString()}");
             }
+
+            return stringBuilder.ToString();
         }
 
         public void AddSubTask(Task subtask, ushort id) // /add-subtask subtask-info
@@ -111,7 +136,7 @@ namespace ToDoList
             task.AddSubTask(subtask);
         }
 
-        public void Load(string filename = "input.txt") // /load filename.txt
+        public void Load(string filename = "input.txt") // /load filename.txt Надо переделать
         {
             if (!File.Exists(filename))
                 throw new FileNotFoundException("This file doesn't exist");
