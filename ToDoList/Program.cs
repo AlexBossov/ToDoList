@@ -80,7 +80,16 @@ namespace ToDoList
                             line = line.Remove(0, 5).Trim();
                             using (var sw = new StreamWriter(line, false, Encoding.Default))
                             {
-                                sw.WriteLine(taskGroups.First());
+                                sw.Write(taskGroups.First().ToString()); // First - задачи без группы
+                                for (index = 1; index < taskGroups.Count; index++)
+                                {
+                                    var taskGroup = taskGroups[index];
+
+                                    sw.Write($"{taskGroup.Name}\n   ");
+                                    var tmp = new StringBuilder(taskGroup.ToString());
+                                    tmp.Replace("\n", "\n   ");
+                                    sw.WriteLine(tmp);
+                                }
                             }
 
                             break;
